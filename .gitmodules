@@ -1,0 +1,3 @@
+[submodule "ReplicatorEngine"]
+	path = ReplicatorEngine
+	url = https://github.com/hlah/ReplicatorEngine.git
