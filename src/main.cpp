@@ -11,10 +11,12 @@ int main() {
 
     engine.bind_key( Key::Escape, "Close" );
 
-    engine.bind_key( Key::Right, "CameraMoveRight" );
-    engine.bind_key( Key::Left, "CameraMoveLeft" );
-    engine.bind_key( Key::Up, "CameraMoveForward" );
-    engine.bind_key( Key::Down, "CameraMoveBackward" );
+    engine.bind_key( Key::D, "CameraMoveRight" );
+    engine.bind_key( Key::A, "CameraMoveLeft" );
+    engine.bind_key( Key::W, "CameraMoveForward" );
+    engine.bind_key( Key::S, "CameraMoveBackward" );
+    engine.bind_key( Key::F, "CameraUp" );
+    engine.bind_key( Key::V, "CameraDown" );
 
     GameState state;
     engine.run(&state);

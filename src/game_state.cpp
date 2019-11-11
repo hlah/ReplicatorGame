@@ -115,6 +115,8 @@ State::Transition GameState::on_action( entt::registry& registry, const ActionEv
     handle_action( action, "CameraMoveLeft", _player_horizontal_v, -_player_speed );
     handle_action( action, "CameraMoveForward", _player_transversal_v, -_player_speed );
     handle_action( action, "CameraMoveBackward", _player_transversal_v, _player_speed );
+    handle_action( action, "CameraUp", _player_vertical_v, _player_speed );
+    handle_action( action, "CameraDown", _player_vertical_v, _player_speed );
 
     return State::Transition::NONE;
 }
@@ -130,7 +132,7 @@ State::Transition GameState::update( entt::registry& registry ) {
     _player_y_rotation = -(_new_mouse_x-_prev_mouse_x)*_player_rotation_speed;
 
     auto new_player_transform = registry.get<Transform>( _player );
-    new_player_transform.translate(_player_horizontal_v, 0.0, _player_transversal_v);
+    new_player_transform.translate(_player_horizontal_v, _player_vertical_v, _player_transversal_v);
     new_player_transform.rotate_y( _player_y_rotation );
     registry.replace<Transform>( _player, new_player_transform );
 

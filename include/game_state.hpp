@@ -23,6 +23,7 @@ class GameState : public State {
         const float _player_speed = 0.1;
         float _player_horizontal_v = 0.0;
         float _player_transversal_v = 0.0;
+        float _player_vertical_v = 0.0;
 
         double _prev_mouse_x, _prev_mouse_y;
         double _new_mouse_x, _new_mouse_y;
