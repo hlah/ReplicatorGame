@@ -8,6 +8,7 @@
 #include "replicator/hierarchy.hpp"
 #include "replicator/material.hpp"
 #include "replicator/matrix_op.hpp"
+#include "replicator/time.hpp"
 
 #include "person.hpp"
 #include "components.hpp"
@@ -131,13 +132,15 @@ State::Transition GameState::update( entt::registry& registry ) {
     _head_x_rotation = -(_new_mouse_y-_prev_mouse_y)*_player_rotation_speed;
     _player_y_rotation = -(_new_mouse_x-_prev_mouse_x)*_player_rotation_speed;
 
+    float dt = registry.ctx<DeltaTime>().value;
+
     auto new_player_transform = registry.get<Transform>( _player );
-    new_player_transform.translate(_player_horizontal_v, _player_vertical_v, _player_transversal_v);
-    new_player_transform.rotate_y( _player_y_rotation );
+    new_player_transform.translate(_player_horizontal_v * dt, _player_vertical_v * dt, _player_transversal_v * dt);
+    new_player_transform.rotate_y( _player_y_rotation * dt );
     registry.replace<Transform>( _player, new_player_transform );
 
     auto new_head_transform = registry.get<Transform>( _head );
-    new_head_transform.rotate_x( _head_x_rotation );
+    new_head_transform.rotate_x( _head_x_rotation * dt );
     registry.replace<Transform>( _head, new_head_transform );
 
     destination_system( registry );

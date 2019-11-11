@@ -1,6 +1,7 @@
 #include "systems.hpp"
 
 #include "replicator/transform.hpp"
+#include "replicator/time.hpp"
 #include "components.hpp"
 
 #include <algorithm>
@@ -18,8 +19,9 @@ void position_system( entt::registry& registry ) {
 
 void velocity_system( entt::registry& registry ) {
     auto view = registry.view<Velocity, Position>();
-    view.each([]( const auto& velocity, auto& position ) {
-            position.value += velocity.value;
+    auto dt = registry.ctx<DeltaTime>().value;
+    view.each([dt]( const auto& velocity, auto& position ) {
+            position.value += velocity.value * (float)dt;
     });
 }
 
@@ -28,7 +30,7 @@ void destination_system( entt::registry& registry ) {
     view.each([]( const auto& position, const auto& destination, auto& velocity ) {
             auto displacement = destination.value - position.value;
             float distance = glm::length( displacement );
-            velocity.value = glm::normalize(displacement) * 0.05f * std::min(1.0f, distance);
+            velocity.value = glm::normalize(displacement) * 2.0f * std::min(1.0f, distance*10.f);
     });
 }
 

@@ -16,11 +16,11 @@ class GameState : public State {
 
         entt::entity _player, _head;
 
-        const float _player_rotation_speed = 0.005;
+        const float _player_rotation_speed = 0.100;
         float _player_y_rotation = 0.0;
         float _head_x_rotation = 0.0;
 
-        const float _player_speed = 0.1;
+        const float _player_speed = 2.0;
         float _player_horizontal_v = 0.0;
         float _player_transversal_v = 0.0;
         float _player_vertical_v = 0.0;
