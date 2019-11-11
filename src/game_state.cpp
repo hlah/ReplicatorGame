@@ -9,6 +9,10 @@
 #include "replicator/material.hpp"
 #include "replicator/matrix_op.hpp"
 
+#include "person.hpp"
+#include "components.hpp"
+#include "systems.hpp"
+
 State::Transition GameState::on_start( entt::registry& registry ) {
     auto& program_cache = registry.set<entt::resource_cache<ShaderProgram>>();
     auto& texture_cache = registry.set<entt::resource_cache<Texture>>();
@@ -25,7 +29,6 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     mb_sphere.icosphere( 0.3, 3 );
     auto mesh_sphere = mb_sphere.build();
 
-
     auto program_handle = program_cache.load<ShaderProgramLoader>(
             "shader_program"_hs, 
             std::vector<std::string>{"../shaders/vertex_main.glsl"}, 
@@ -36,37 +39,17 @@ State::Transition GameState::on_start( entt::registry& registry ) {
             } 
     );
 
-    // create cylinder
-    auto cylinder = registry.create();
-    registry.assign<Model>( cylinder, mesh_cylinder, program_handle );
-    registry.assign<Material>( 
-            cylinder, 
-            glm::vec3{0.1, 0.1, 0.0}, 
-            glm::vec3{0.9, 0.9, 0.3},  
-            glm::vec3{0.5, 0.5, 0.5},  
-            50.0
-    );
-    registry.assign<Hierarchy>( cylinder );
-    registry.assign<Transform>( cylinder, Transform{}.translate( 0.0, -2.0, 0.0 ) );
-
-    // create sphere
-    auto sphere = registry.create();
-    registry.assign<Model>( sphere, mesh_sphere, program_handle );
-    registry.assign<Material>( 
-            sphere, 
-            glm::vec3{0.1, 0.1, 0.0}, 
-            glm::vec3{0.9, 0.9, 0.3},  
-            glm::vec3{0.5, 0.5, 0.5},  
-            50.0
-    );
-    registry.assign<Hierarchy>( sphere );
-    registry.assign<Transform>( sphere, Transform{}.translate( 0.0, -0.7, 0.0 ) );
+    for( int i = 0; i<100; i++ ) {
+        auto person = new_person(registry, program_handle, mesh_cylinder, mesh_sphere);
+        registry.assign<Position>( person );
+        registry.assign<Velocity>( person );
+    }
 
     /// Create Terrain
     for( int i = -10; i<=10; i++ ) {
         for( int j = -10; j<=10; j++ ) {
             auto terrain = registry.create();
-            registry.assign<Transform>( terrain, Transform{}.translate( 2*i, -2.0, 2*j ) );
+            registry.assign<Transform>( terrain, Transform{}.translate( 2*i, 0.0, 2*j ) );
             registry.assign<Hierarchy>( terrain );
             registry.assign<Model>( terrain, mesh_rect, program_handle );
             if( (i+j)%2 == 0 ) {
@@ -95,7 +78,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.assign<Hierarchy>( _player );
 
     _head = registry.create();
-    registry.assign<Transform>( _head );
+    registry.assign<Transform>( _head, Transform{}.translate(0.0, 2.0, 0.0) );
     registry.assign<Hierarchy>( _head, _player );
     registry.set<CurrentCamera>( _head );
 
@@ -155,6 +138,10 @@ State::Transition GameState::update( entt::registry& registry ) {
     new_head_transform.rotate_x( _head_x_rotation );
     registry.replace<Transform>( _head, new_head_transform );
 
+    destination_system( registry );
+    velocity_system( registry );
+    reallocation_system( registry );
+    position_system( registry );
     transform_system( registry );
     camera_system( registry );
     light_system( registry );
