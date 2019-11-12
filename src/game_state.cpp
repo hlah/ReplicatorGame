@@ -11,8 +11,10 @@
 #include "replicator/time.hpp"
 
 #include "person.hpp"
+#include "city.hpp"
 #include "components.hpp"
 #include "systems.hpp"
+
 
 State::Transition GameState::on_start( entt::registry& registry ) {
     auto& program_cache = registry.set<entt::resource_cache<ShaderProgram>>();
@@ -30,6 +32,10 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     mb_sphere.icosphere( 0.3, 3 );
     auto mesh_sphere = mb_sphere.build();
 
+    MeshBuilder mb_cube;
+    mb_cube.cube( 10.0, {0.0, 5.0, 0.0} );
+    auto mesh_cube = mb_cube.build();
+
     auto program_handle = program_cache.load<ShaderProgramLoader>(
             "shader_program"_hs, 
             std::vector<std::string>{"../shaders/vertex_main.glsl"}, 
@@ -46,32 +52,10 @@ State::Transition GameState::on_start( entt::registry& registry ) {
         registry.assign<Velocity>( person );
     }
 
-    /// Create Terrain
-    for( int i = -10; i<=10; i++ ) {
-        for( int j = -10; j<=10; j++ ) {
-            auto terrain = registry.create();
-            registry.assign<Transform>( terrain, Transform{}.translate( 2*i, 0.0, 2*j ) );
-            registry.assign<Hierarchy>( terrain );
-            registry.assign<Model>( terrain, mesh_rect, program_handle );
-            if( (i+j)%2 == 0 ) {
-                registry.assign<Material>( 
-                        terrain, 
-                        glm::vec3{0.0, 0.0, 0.0}, 
-                        glm::vec3{0.5, 0.5, 0.5},  
-                        glm::vec3{0.2, 0.2, 0.2},  
-                        20.0
-                );
-            } else {
-                registry.assign<Material>( 
-                        terrain, 
-                        glm::vec3{0.0, 0.0, 0.0}, 
-                        glm::vec3{0.8, 0.8, 0.8},  
-                        glm::vec3{0.1, 0.1, 0.1},  
-                        20.0
-                );
-            }
-        }
-    }
+    // Create terrain
+    std::vector<Building> buildings;
+    buildings.emplace_back( mesh_cube, 5u, 5u );
+    make_city( registry, program_handle, buildings, mesh_rect, 50, 50 );
 
     //// Create player with camera
     _player = registry.create();
@@ -84,7 +68,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.set<CurrentCamera>( _head );
 
     auto camera = registry.create();
-    registry.assign<Camera>( camera, (float)M_PI/2.f, -0.1f, -50.0f );
+    registry.assign<Camera>( camera, (float)M_PI/2.f, -0.1f, -100.0f );
     registry.assign<Transform>( camera );
     registry.assign<Hierarchy>( camera, _head );
     registry.set<CurrentCamera>( camera );
@@ -143,6 +127,7 @@ State::Transition GameState::update( entt::registry& registry ) {
     new_head_transform.rotate_x( _head_x_rotation * dt );
     registry.replace<Transform>( _head, new_head_transform );
 
+    hierarchy_system( registry );
     destination_system( registry );
     velocity_system( registry );
     reallocation_system( registry );
