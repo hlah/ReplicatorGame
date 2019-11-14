@@ -5,15 +5,12 @@
 #include "replicator/shaders.hpp"
 #include "replicator/mesh.hpp"
 
-struct Building {
-    Mesh mesh;
-    unsigned int width;
-    unsigned int length;
-    Building( Mesh mesh, unsigned int width, unsigned int length ) :
-        mesh{mesh},
-        width{width},
-        length{length}
-    { }
+#include "buildings.hpp"
+
+struct DivisionLevel {
+    unsigned int divs;
+    unsigned int max_size;
+    unsigned int road_size;
 };
 
 void make_city( 
@@ -22,7 +19,8 @@ void make_city(
         const std::vector<Building>& buildings,
         Mesh mesh_rect,
         unsigned int width,
-        unsigned int length
+        unsigned int length,
+        std::vector<DivisionLevel> divison_levels
 );
 
 #endif // _REPLICATOR_GAME_TERRAIN_H_

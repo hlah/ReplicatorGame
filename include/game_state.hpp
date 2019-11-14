@@ -20,7 +20,7 @@ class GameState : public State {
         float _player_y_rotation = 0.0;
         float _head_x_rotation = 0.0;
 
-        const float _player_speed = 2.0;
+        const float _player_speed = 20.0;
         float _player_horizontal_v = 0.0;
         float _player_transversal_v = 0.0;
         float _player_vertical_v = 0.0;

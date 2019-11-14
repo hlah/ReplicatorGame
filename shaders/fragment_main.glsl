@@ -12,6 +12,8 @@ uniform struct {
     vec3 specular;
     float shininess;
 
+    sampler2D ambient_textures[4];
+    uint ambient_texture_count;
     sampler2D diffuse_textures[4];
     uint diffuse_texture_count;
     sampler2D specular_textures[4];
@@ -26,9 +28,12 @@ void main() {
     vec3 diffuse_color = material.diffuse;
     vec3 specular_color = material.specular;
 
+    for( uint i=0u; i<material.ambient_texture_count; i++ ) {
+        vec3 tex_color = texture( material.ambient_textures[i], texcoords_f ).rgb;
+        ambient_color += tex_color;
+    }
     for( uint i=0u; i<material.diffuse_texture_count; i++ ) {
         vec3 tex_color = texture( material.diffuse_textures[i], texcoords_f ).rgb;
-        //ambient_color += tex_color;
         diffuse_color += tex_color;
     }
     for( uint i=0u; i<material.specular_texture_count; i++ ) {

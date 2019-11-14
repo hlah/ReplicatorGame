@@ -9,11 +9,14 @@
 #include "replicator/material.hpp"
 #include "replicator/matrix_op.hpp"
 #include "replicator/time.hpp"
+#include "replicator/model_loader.hpp"
+#include "replicator/deepcopy.hpp"
 
 #include "person.hpp"
 #include "city.hpp"
 #include "components.hpp"
 #include "systems.hpp"
+#include "buildings.hpp"
 
 
 State::Transition GameState::on_start( entt::registry& registry ) {
@@ -46,6 +49,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
             } 
     );
 
+
     for( int i = 0; i<100; i++ ) {
         auto person = new_person(registry, program_handle, mesh_cylinder, mesh_sphere);
         registry.assign<Position>( person );
@@ -53,13 +57,23 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     }
 
     // Create terrain
-    std::vector<Building> buildings;
-    buildings.emplace_back( mesh_cube, 5u, 5u );
-    make_city( registry, program_handle, buildings, mesh_rect, 50, 50 );
+    auto buildings = get_buildings( registry, program_handle );
+    for( auto& building : buildings ) {
+        auto cube = registry.create();
+        registry.assign<Model>( cube, mesh_cube, program_handle );
+        registry.assign<Transform>( cube, Transform{}.scale(80.0, 80.0, 80.0) );
+        registry.assign<Hierarchy>( cube, building.prefab );
+        registry.assign<Material>( cube, Material{ glm::vec3{1.0, 0.0, 0.0} } );
+    }
+    make_city( registry, program_handle, buildings, mesh_rect, 200, 200, { { 3, 70, 8 }, { 2, 30, 1 } } );
+    for( auto& building : buildings ) {
+        deepdelete( registry, building.prefab );
+    }
+    buildings.clear();
 
     //// Create player with camera
     _player = registry.create();
-    registry.assign<Transform>( _player, Transform{}.translate(0.0, 0.0, 5.0) );
+    registry.assign<Transform>( _player, Transform{}.translate(0.0, 0.0, 20.0) );
     registry.assign<Hierarchy>( _player );
 
     _head = registry.create();
@@ -68,7 +82,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.set<CurrentCamera>( _head );
 
     auto camera = registry.create();
-    registry.assign<Camera>( camera, (float)M_PI/2.f, -0.1f, -100.0f );
+    registry.assign<Camera>( camera, (float)M_PI/2.f, -0.1f, -500.0f );
     registry.assign<Transform>( camera );
     registry.assign<Hierarchy>( camera, _head );
     registry.set<CurrentCamera>( camera );
@@ -101,7 +115,7 @@ State::Transition GameState::on_action( entt::registry& registry, const ActionEv
     handle_action( action, "CameraMoveForward", _player_transversal_v, -_player_speed );
     handle_action( action, "CameraMoveBackward", _player_transversal_v, _player_speed );
     handle_action( action, "CameraUp", _player_vertical_v, _player_speed );
-    handle_action( action, "CameraDown", _player_vertical_v, _player_speed );
+    handle_action( action, "CameraDown", _player_vertical_v, -_player_speed );
 
     return State::Transition::NONE;
 }
