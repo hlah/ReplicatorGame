@@ -23,8 +23,7 @@ Building get_building(
         entt::registry& registry,
         entt::resource_handle<ShaderProgram> program_handle,
         const std::string& model_path,
-        float scalling_factor,
-        glm::vec3 translation = glm::vec3{0.0}
+        float scalling_factor
 );
 std::vector<Building> get_buildings( entt::registry& registry, entt::resource_handle<ShaderProgram> program_handle );
 

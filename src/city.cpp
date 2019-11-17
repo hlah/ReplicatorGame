@@ -106,8 +106,16 @@ void make_city(
         );
         registry.assign<Hierarchy>( block_marker );
 
+        // select building to place
+        std::vector<size_t> elegible_buildings;
+        for( size_t i=0; i<buildings.size(); i++ ) {
+            if( buildings[i].width < block.w && buildings[i].length < block.l ) {
+                elegible_buildings.push_back(i);
+            }
+        }
+        const auto& building_to_place = buildings[elegible_buildings[rng()%elegible_buildings.size()]];
+
         // place buildings
-        const auto& building_to_place = buildings[rng()%buildings.size()];
         auto building = deepcopy( registry, building_to_place.prefab );
         auto building_transform = registry.get<Transform>( building );
         building_transform.translate_global(  
@@ -117,17 +125,6 @@ void make_city(
         );
         registry.replace<Transform>( building, building_transform );
 
-        /*
-        auto cube = registry.create();
-        Transform cube_transform;
-        cube_transform.scale( building_to_place.width, 1.0, building_to_place.length );
-        cube_transform.translate( building_transform.get_translation() );
-        //cube_transform.translate( { building_to_place.left, 0.0, building_to_place.back} );
-        registry.assign<Model>( cube, mesh_cube, program_handle );
-        registry.assign<Transform>( cube, cube_transform);
-        registry.assign<Hierarchy>( cube );
-        registry.assign<Material>( cube, Material{ glm::vec3{1.0, 0.0, 0.0} } );
-        */
     }
 
     /// Create Terrain
