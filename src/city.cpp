@@ -25,12 +25,12 @@ std::vector<Rect> divide_block(
         unsigned int max_l_divs = 3, 
         unsigned int road_size=4 ) 
 {
-    spdlog::debug("Dividing block: {} {} {} {}", block.x, block.z, block.w, block.l);
+    //spdlog::debug("Dividing block: {} {} {} {}", block.x, block.z, block.w, block.l);
     std::vector<Rect> divisions;
     unsigned int w_divs = 1 + rng() % max_w_divs;
     unsigned int l_divs = 1 + rng() % max_l_divs;
 
-    spdlog::debug("divisions: {} {}", w_divs, l_divs);
+    //spdlog::debug("divisions: {} {}", w_divs, l_divs);
 
     auto pos_x = block.x;
     auto block_w = (block.w - road_size*(w_divs-1)) / w_divs;
@@ -90,6 +90,10 @@ void make_city(
         blocks = new_blocks;
     }
 
+    MeshBuilder mb_cube;
+    mb_cube.cube( 1.0 );
+    auto mesh_cube = mb_cube.build();
+
     for( auto& block : blocks ) {
         // block marker
         auto block_marker = registry.create();
@@ -106,8 +110,24 @@ void make_city(
         const auto& building_to_place = buildings[rng()%buildings.size()];
         auto building = deepcopy( registry, building_to_place.prefab );
         auto building_transform = registry.get<Transform>( building );
-        building_transform.translate_global(  (float)(block.x)+(float)block.w/2.f, 0.0, (float)(block.z)+(float)block.l/2.f );
+        building_transform.translate_global(  
+                (float)(block.x)+(float)block.w/2.f-building_to_place.left-building_to_place.width/2.f, 
+                0.0, 
+                (float)(block.z)+(float)block.l/2.f-building_to_place.back-building_to_place.length/2.f
+        );
         registry.replace<Transform>( building, building_transform );
+
+        /*
+        auto cube = registry.create();
+        Transform cube_transform;
+        cube_transform.scale( building_to_place.width, 1.0, building_to_place.length );
+        cube_transform.translate( building_transform.get_translation() );
+        //cube_transform.translate( { building_to_place.left, 0.0, building_to_place.back} );
+        registry.assign<Model>( cube, mesh_cube, program_handle );
+        registry.assign<Transform>( cube, cube_transform);
+        registry.assign<Hierarchy>( cube );
+        registry.assign<Material>( cube, Material{ glm::vec3{1.0, 0.0, 0.0} } );
+        */
     }
 
     /// Create Terrain

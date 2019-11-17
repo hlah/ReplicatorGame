@@ -1,5 +1,7 @@
 #include "game_state.hpp"
 
+#include "spdlog/spdlog.h"
+
 #include "replicator/window.hpp"
 #include "replicator/mesh.hpp"
 #include "replicator/models.hpp"
@@ -36,7 +38,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     auto mesh_sphere = mb_sphere.build();
 
     MeshBuilder mb_cube;
-    mb_cube.cube( 10.0, {0.0, 5.0, 0.0} );
+    mb_cube.cube( 1.0 );
     auto mesh_cube = mb_cube.build();
 
     auto program_handle = program_cache.load<ShaderProgramLoader>(
@@ -50,22 +52,17 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     );
 
 
+    /*
     for( int i = 0; i<100; i++ ) {
         auto person = new_person(registry, program_handle, mesh_cylinder, mesh_sphere);
         registry.assign<Position>( person );
         registry.assign<Velocity>( person );
     }
+    */
 
     // Create terrain
     auto buildings = get_buildings( registry, program_handle );
-    for( auto& building : buildings ) {
-        auto cube = registry.create();
-        registry.assign<Model>( cube, mesh_cube, program_handle );
-        registry.assign<Transform>( cube, Transform{}.scale(80.0, 80.0, 80.0) );
-        registry.assign<Hierarchy>( cube, building.prefab );
-        registry.assign<Material>( cube, Material{ glm::vec3{1.0, 0.0, 0.0} } );
-    }
-    make_city( registry, program_handle, buildings, mesh_rect, 200, 200, { { 3, 70, 8 }, { 2, 30, 1 } } );
+    make_city( registry, program_handle, buildings, mesh_rect, 100, 100, { { 3, 70, 8 }, { 2, 30, 1 } } );
     for( auto& building : buildings ) {
         deepdelete( registry, building.prefab );
     }
