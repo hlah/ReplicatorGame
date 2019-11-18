@@ -3,6 +3,7 @@
 #include "replicator/transform.hpp"
 #include "replicator/time.hpp"
 #include "components.hpp"
+#include "city.hpp"
 
 #include <algorithm>
 #include <random>
@@ -35,12 +36,13 @@ void destination_system( entt::registry& registry ) {
 }
 
 void reallocation_system( entt::registry& registry ) {
-    static std::default_random_engine rng;
-    static std::uniform_real_distribution<float> dist{-20.0, 20.0};
+    auto& rng = registry.ctx<std::default_random_engine>();
+    const auto& places = registry.ctx<std::vector<Place>>();
     auto view = registry.view<Velocity>();
-    view.each([&registry]( const auto entity, const auto& velocity ) {
+    view.each([&registry, &rng, &places]( const auto entity, const auto& velocity ) {
             if( glm::length( velocity.value ) < 0.01f ) {
-                Destination new_destination{ glm::vec3{ dist(rng), 0.0, dist(rng) } };
+                const auto& new_place = places[ rng() % places.size() ];
+                Destination new_destination{ glm::vec3{ new_place.pos_x, 0.0, new_place.pos_z } };
                 registry.assign_or_replace<Destination>( entity, new_destination );
             }
     });

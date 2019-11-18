@@ -5,16 +5,25 @@
 #include "replicator/material.hpp"
 #include "replicator/models.hpp"
 
+#include "components.hpp"
 
 entt::entity new_person(
         entt::registry& registry,
+        std::default_random_engine& rng,
+        const std::vector<Place> places,
         const entt::resource_handle<ShaderProgram> program_handle,
         const Mesh& mesh_cylinder, 
         const Mesh& mesh_sphere
 ) {
+    // select place
+    auto& place = places[rng() % places.size()];
+
+
     auto person = registry.create();
     registry.assign<Hierarchy>( person );
     registry.assign<Transform>( person );
+    registry.assign<Position>( person, glm::vec3{place.pos_x, 0.0, place.pos_z} );
+    registry.assign<Velocity>( person );
 
     // create body
     auto body = registry.create();

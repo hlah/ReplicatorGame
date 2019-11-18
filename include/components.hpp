@@ -15,4 +15,8 @@ struct Destination {
     glm::vec3 value{0.0};
 };
 
+struct Wait {
+    float time;
+};
+
 #endif // _REPLICATOR_GAME_COMPONENTS__

@@ -7,14 +7,23 @@
 
 #include "buildings.hpp"
 
+#include <random>
+
 struct DivisionLevel {
     unsigned int divs;
     unsigned int max_size;
     unsigned int road_size;
 };
 
-void make_city( 
+struct Place {
+    float pos_x;
+    float pos_z;
+    Place( float x, float z ) : pos_x{x}, pos_z{z} {}
+};
+
+std::vector<Place> make_city( 
         entt::registry& registry ,
+        std::default_random_engine& rng,
         entt::resource_handle<ShaderProgram> program_handle,
         const std::vector<Building>& buildings,
         Mesh mesh_rect,

@@ -22,8 +22,7 @@
 
 
 State::Transition GameState::on_start( entt::registry& registry ) {
-    auto& program_cache = registry.set<entt::resource_cache<ShaderProgram>>();
-    auto& texture_cache = registry.set<entt::resource_cache<Texture>>();
+    auto& program_cache = registry.ctx<entt::resource_cache<ShaderProgram>>();
 
     MeshBuilder mb_rect;
     mb_rect.rect( glm::vec3{0.0}, glm::vec3{0.0, 0.0, -1.0}, glm::vec3{1.0, 0.0, 0.0} );
@@ -51,22 +50,27 @@ State::Transition GameState::on_start( entt::registry& registry ) {
             } 
     );
 
+    auto& rng = registry.set<std::default_random_engine>( (unsigned) std::chrono::system_clock::now().time_since_epoch().count() );
 
-    /*
-    for( int i = 0; i<100; i++ ) {
-        auto person = new_person(registry, program_handle, mesh_cylinder, mesh_sphere);
-        registry.assign<Position>( person );
-        registry.assign<Velocity>( person );
-    }
-    */
-
-    // Create terrain
+    // Create city
     auto buildings = get_buildings( registry, program_handle );
-    make_city( registry, program_handle, buildings, mesh_rect, 100, 100, { { 3, 70, 8 }, { 2, 30, 1 } } );
+    for( auto& building : buildings ) {
+        spdlog::debug("Building bounding box: {} {} {} {}", building.left, building.back, building.width, building.length);
+    }
+    
+    registry.set<std::vector<Place>>( 
+            make_city( registry, rng, program_handle, buildings, mesh_rect, 100, 100, { { 3, 70, 8 }, { 2, 30, 1 } } ) 
+    );
+
     for( auto& building : buildings ) {
         deepdelete( registry, building.prefab );
     }
     buildings.clear();
+
+    for( int i = 0; i<20; i++ ) {
+        new_person(registry, rng, registry.ctx<std::vector<Place>>(), program_handle, mesh_cylinder, mesh_sphere);
+    }
+
 
     //// Create player with camera
     _player = registry.create();

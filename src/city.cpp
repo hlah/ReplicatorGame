@@ -5,7 +5,6 @@
 #include "replicator/models.hpp"
 #include "replicator/deepcopy.hpp"
 
-#include <random>
 #include <chrono>
 
 #include "spdlog/spdlog.h"
@@ -68,8 +67,9 @@ std::vector<Rect> divide_block(
     return divisions;
 };
 
-void make_city( 
+std::vector<Place> make_city( 
         entt::registry& registry ,
+        std::default_random_engine& rng,
         entt::resource_handle<ShaderProgram> program_handle,
         const std::vector<Building>& buildings,
         Mesh mesh_rect,
@@ -77,7 +77,7 @@ void make_city(
         unsigned int length,
         std::vector<DivisionLevel> divison_levels
 ) {
-    auto rng = std::default_random_engine{ (unsigned) std::chrono::system_clock::now().time_since_epoch().count() };
+    std::vector<Place> places;
 
     std::vector<Rect> blocks;
     blocks.push_back( { -(int)width/2, -(int)length/2, width, length } );
@@ -118,12 +118,11 @@ void make_city(
         // place buildings
         auto building = deepcopy( registry, building_to_place.prefab );
         auto building_transform = registry.get<Transform>( building );
-        building_transform.translate_global(  
-                (float)(block.x)+(float)block.w/2.f-building_to_place.left-building_to_place.width/2.f, 
-                0.0, 
-                (float)(block.z)+(float)block.l/2.f-building_to_place.back-building_to_place.length/2.f
-        );
+        float building_pos_x = (float)(block.x)+(float)block.w/2.f-building_to_place.left-building_to_place.width/2.f; 
+        float building_pos_z = (float)(block.z)+(float)block.l/2.f-building_to_place.back-building_to_place.length/2.f;
+        building_transform.translate_global( building_pos_x, 0.0, building_pos_z );
         registry.replace<Transform>( building, building_transform );
+        places.emplace_back( (float)(block.x)+(float)block.w/2.f, building_pos_z );
 
     }
 
@@ -157,4 +156,5 @@ void make_city(
     }
     */
     spdlog::debug("Done!");
+    return places;
 }
