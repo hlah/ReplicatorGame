@@ -13,6 +13,7 @@ struct Velocity {
 
 struct Destination {
     glm::vec3 value{0.0};
+    Destination( glm::vec3 value = glm::vec3{0.0} ) : value{value} {}
 };
 
 struct Wait {

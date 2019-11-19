@@ -9,23 +9,17 @@
 
 #include "spdlog/spdlog.h"
 
-struct Rect {
-    int x;
-    int z;
-    unsigned int w;
-    unsigned int l;
-};
 
-std::vector<Rect> divide_block( 
+std::vector<CityRect> divide_block( 
         std::default_random_engine& rng, 
-        Rect block, 
+        CityRect block, 
         unsigned int max_size, 
         unsigned int max_w_divs = 3, 
         unsigned int max_l_divs = 3, 
         unsigned int road_size=4 ) 
 {
     //spdlog::debug("Dividing block: {} {} {} {}", block.x, block.z, block.w, block.l);
-    std::vector<Rect> divisions;
+    std::vector<CityRect> divisions;
     unsigned int w_divs = 1 + rng() % max_w_divs;
     unsigned int l_divs = 1 + rng() % max_l_divs;
 
@@ -45,7 +39,7 @@ std::vector<Rect> divide_block(
                 block_l = block.l - (pos_z-block.z);
             }
 
-            Rect new_block{ pos_x, pos_z, block_w, block_l };
+            CityRect new_block{ pos_x, pos_z, block_w, block_l };
             if( new_block.w <= max_size && new_block.l <= max_size ) {
                 divisions.push_back( new_block );
             } else {
@@ -79,10 +73,10 @@ std::vector<Place> make_city(
 ) {
     std::vector<Place> places;
 
-    std::vector<Rect> blocks;
+    std::vector<CityRect> blocks;
     blocks.push_back( { -(int)width/2, -(int)length/2, width, length } );
     for( const auto& division_level : divison_levels  ) {
-        std::vector<Rect> new_blocks;
+        std::vector<CityRect> new_blocks;
         for( const auto& block : blocks ) {
             auto sub_blocks = divide_block( rng, block, division_level.max_size, division_level.divs, division_level.divs, division_level.road_size );
             new_blocks.insert( new_blocks.end(), sub_blocks.begin(), sub_blocks.end() );
@@ -122,7 +116,7 @@ std::vector<Place> make_city(
         float building_pos_z = (float)(block.z)+(float)block.l/2.f-building_to_place.back-building_to_place.length/2.f;
         building_transform.translate_global( building_pos_x, 0.0, building_pos_z );
         registry.replace<Transform>( building, building_transform );
-        places.emplace_back( (float)(block.x)+(float)block.w/2.f, building_pos_z );
+        places.emplace_back( (float)(block.x)+(float)block.w/2.f, (float)(block.z)+(float)block.l/2.f, block );
 
     }
 

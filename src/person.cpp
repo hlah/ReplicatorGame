@@ -24,6 +24,7 @@ entt::entity new_person(
     registry.assign<Transform>( person );
     registry.assign<Position>( person, glm::vec3{place.pos_x, 0.0, place.pos_z} );
     registry.assign<Velocity>( person );
+    registry.assign<std::vector<Destination>>( person );
 
     // create body
     auto body = registry.create();

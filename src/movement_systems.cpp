@@ -4,6 +4,7 @@
 #include "replicator/time.hpp"
 #include "components.hpp"
 #include "city.hpp"
+#include "search.hpp"
 
 #include <algorithm>
 #include <random>
@@ -27,23 +28,26 @@ void velocity_system( entt::registry& registry ) {
 }
 
 void destination_system( entt::registry& registry ) {
-    auto view = registry.view<Position, Destination, Velocity>();
-    view.each([]( const auto& position, const auto& destination, auto& velocity ) {
-            auto displacement = destination.value - position.value;
+    auto view = registry.view<Position, std::vector<Destination>, Velocity>();
+    view.each([&registry]( const auto& position, auto& destinations, auto& velocity ) {
+            if( destinations.size() == 0 ) {
+                auto& rng = registry.ctx<std::default_random_engine>();
+                const auto& places = registry.ctx<std::vector<Place>>();
+                const auto& new_place = places[ rng() % places.size() ];
+                destinations = search( position, new_place, places );
+                //Destination new_destination{ glm::vec3{ new_place.pos_x, 0.0, new_place.pos_z } };
+                //destinations.emplace_back( new_destination );
+            }
+
+            auto& next_destination = destinations.back();
+            auto displacement = next_destination.value - position.value;
             float distance = glm::length( displacement );
-            velocity.value = glm::normalize(displacement) * 2.0f * std::min(1.0f, distance*10.f);
+            if( distance < 0.5f ) {
+                destinations.pop_back();
+            } else {
+                velocity.value = glm::normalize(displacement) * 5.0f * std::min(1.0f, distance*10.f);
+            }
+
     });
 }
 
-void reallocation_system( entt::registry& registry ) {
-    auto& rng = registry.ctx<std::default_random_engine>();
-    const auto& places = registry.ctx<std::vector<Place>>();
-    auto view = registry.view<Velocity>();
-    view.each([&registry, &rng, &places]( const auto entity, const auto& velocity ) {
-            if( glm::length( velocity.value ) < 0.01f ) {
-                const auto& new_place = places[ rng() % places.size() ];
-                Destination new_destination{ glm::vec3{ new_place.pos_x, 0.0, new_place.pos_z } };
-                registry.assign_or_replace<Destination>( entity, new_destination );
-            }
-    });
-}

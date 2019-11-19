@@ -89,7 +89,6 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.set<CurrentCamera>( camera );
 
     //// Lights
-
     auto light = registry.create();
     registry.assign<LightColor>( light, glm::vec3{0.5, 0.5, 0.5} );
     registry.assign<DirectionalLight>( light );
@@ -145,7 +144,6 @@ State::Transition GameState::update( entt::registry& registry ) {
     hierarchy_system( registry );
     destination_system( registry );
     velocity_system( registry );
-    reallocation_system( registry );
     position_system( registry );
     transform_system( registry );
     camera_system( registry );
