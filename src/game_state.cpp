@@ -96,12 +96,9 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.assign<Hierarchy>( light );
 
     // Set previous mouse position
-    auto window = registry.ctx<std::shared_ptr<Window>>();
+    auto window = registry.ctx<WindowHandler>();
     _new_mouse_x = _prev_mouse_x = window->mouse_x();
     _new_mouse_y = _prev_mouse_y = window->mouse_y();
-
-    // Set mouse capture mode
-    window->capture_mouse(true);
 
     return State::Transition::NONE;
 }
@@ -109,6 +106,14 @@ State::Transition GameState::on_start( entt::registry& registry ) {
 State::Transition GameState::on_action( entt::registry& registry, const ActionEvent& action ) {
     if( action.name() == "Close" && action.type() == ActionEvent::Type::ON ) {
         return State::Transition::QUIT;
+    }
+    if( action.name() == "MoveCamera" && action.type() == ActionEvent::Type::ON ) {
+        _move_camera = true;
+        registry.ctx<WindowHandler>()->capture_mouse( true );
+    }
+    if( action.name() == "MoveCamera" && action.type() == ActionEvent::Type::OFF ) {
+        _move_camera = false;
+        registry.ctx<WindowHandler>()->capture_mouse( false );
     }
     handle_action( action, "CameraMoveRight", _player_horizontal_v, _player_speed );
     handle_action( action, "CameraMoveLeft", _player_horizontal_v, -_player_speed );
@@ -134,12 +139,16 @@ State::Transition GameState::update( entt::registry& registry ) {
 
     auto new_player_transform = registry.get<Transform>( _player );
     new_player_transform.translate(_player_horizontal_v * dt, _player_vertical_v * dt, _player_transversal_v * dt);
-    new_player_transform.rotate_y( _player_y_rotation * dt );
+    if( _move_camera ) {
+        new_player_transform.rotate_y( _player_y_rotation * dt );
+    }
     registry.replace<Transform>( _player, new_player_transform );
 
-    auto new_head_transform = registry.get<Transform>( _head );
-    new_head_transform.rotate_x( _head_x_rotation * dt );
-    registry.replace<Transform>( _head, new_head_transform );
+    if( _move_camera ) {
+        auto new_head_transform = registry.get<Transform>( _head );
+        new_head_transform.rotate_x( _head_x_rotation * dt );
+        registry.replace<Transform>( _head, new_head_transform );
+    }
 
     hierarchy_system( registry );
     destination_system( registry );

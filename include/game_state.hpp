@@ -27,6 +27,8 @@ class GameState : public State {
 
         double _prev_mouse_x, _prev_mouse_y;
         double _new_mouse_x, _new_mouse_y;
+
+        bool _move_camera = false;
 };
 
 #endif // _REPLICATOR_GAME_GAME_STATE_H_
