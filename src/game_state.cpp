@@ -13,11 +13,14 @@
 #include "replicator/time.hpp"
 #include "replicator/model_loader.hpp"
 #include "replicator/deepcopy.hpp"
+#include "replicator/geometry/ray.hpp"
+#include "replicator/geometry/plane.hpp"
 
 #include "person.hpp"
 #include "city.hpp"
 #include "components.hpp"
-#include "systems.hpp"
+#include "movement_systems.hpp"
+#include "interaction_systems.hpp"
 #include "buildings.hpp"
 
 
@@ -28,17 +31,6 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     mb_rect.rect( glm::vec3{0.0}, glm::vec3{0.0, 0.0, -1.0}, glm::vec3{1.0, 0.0, 0.0} );
     auto mesh_rect = mb_rect.build();
 
-    MeshBuilder mb_cylinder;
-    mb_cylinder.cylinder( glm::vec3{0.2, 0.0, 0.0}, glm::vec3{0.0, 0.5, 0.0}, 64, glm::vec3{0.0, 0.5, 0.0} );
-    auto mesh_cylinder = mb_cylinder.build();
-
-    MeshBuilder mb_sphere;
-    mb_sphere.icosphere( 0.3, 3 );
-    auto mesh_sphere = mb_sphere.build();
-
-    MeshBuilder mb_cube;
-    mb_cube.cube( 1.0 );
-    auto mesh_cube = mb_cube.build();
 
     auto program_handle = program_cache.load<ShaderProgramLoader>(
             "shader_program"_hs, 
@@ -58,7 +50,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
         spdlog::debug("Building bounding box: {} {} {} {}", building.left, building.back, building.width, building.length);
     }
     
-    registry.set<std::vector<Place>>( 
+    auto& places = registry.set<std::vector<Place>>( 
             make_city( registry, rng, program_handle, buildings, mesh_rect, 100, 100, { { 3, 70, 8 }, { 2, 30, 1 } } ) 
     );
 
@@ -67,9 +59,12 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     }
     buildings.clear();
 
+    // Put city citizens
+    auto person_prefab = generate_person_prefab( registry, program_handle );
     for( int i = 0; i<20; i++ ) {
-        new_person(registry, rng, registry.ctx<std::vector<Place>>(), program_handle, mesh_cylinder, mesh_sphere);
+        random_place_person( registry, rng, places, person_prefab );
     }
+    deepdelete( registry, person_prefab );
 
 
     //// Create player with camera
@@ -100,6 +95,25 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     _new_mouse_x = _prev_mouse_x = window->mouse_x();
     _new_mouse_y = _prev_mouse_y = window->mouse_y();
 
+    // Create selection highlight prefab
+    MeshBuilder mb_sphere;
+    mb_sphere.icosphere( 0.1, 2);
+    auto mesh_sphere = mb_sphere.build();
+    auto selection_highlight_prefab = registry.create();
+    registry.assign<Transform>( selection_highlight_prefab, Transform{}.translate( 0.0, 2.5, 0.0 ) );
+    registry.assign<Model>( selection_highlight_prefab, mesh_sphere, program_handle );
+    registry.assign<Material>( 
+            selection_highlight_prefab, 
+            glm::vec3{ 0.7, 1.0, 0.7 }
+    );
+    registry.assign<Hierarchy>( selection_highlight_prefab );
+    registry.assign<Hidden>( selection_highlight_prefab );
+    registry.set<SelectedHighlight>( selection_highlight_prefab );
+
+    // Watcher for selection system
+    registry.on_construct<Selected>().connect<&Selected::on_construct>();
+    registry.on_destroy<Selected>().connect<&Selected::on_destroy>();
+
     return State::Transition::NONE;
 }
 
@@ -114,6 +128,9 @@ State::Transition GameState::on_action( entt::registry& registry, const ActionEv
     if( action.name() == "MoveCamera" && action.type() == ActionEvent::Type::OFF ) {
         _move_camera = false;
         registry.ctx<WindowHandler>()->capture_mouse( false );
+    }
+    if( action.name() == "Select" && action.type() == ActionEvent::Type::ON ) {
+        selection_system( registry );
     }
     handle_action( action, "CameraMoveRight", _player_horizontal_v, _player_speed );
     handle_action( action, "CameraMoveLeft", _player_horizontal_v, -_player_speed );

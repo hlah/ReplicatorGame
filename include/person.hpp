@@ -6,13 +6,24 @@
 #include "replicator/shaders.hpp"
 #include "city.hpp"
 
-entt::entity new_person(
+struct Person{};
+
+entt::entity generate_person_prefab( entt::registry& registry, const entt::resource_handle<ShaderProgram> program_handle );
+
+entt::entity random_place_person(
         entt::registry& registry,
         std::default_random_engine& rng,
         const std::vector<Place> places,
-        const entt::resource_handle<ShaderProgram> program_handle,
-        const Mesh& mesh_cylinder, 
-        const Mesh& mesh_sphere
+        entt::entity person_prefab
 );
+
+entt::entity place_person(
+        entt::registry& registry,
+        entt::entity person_prefab,
+        float x,
+        float z
+);
+
+
 
 #endif // _REPLICATOR_GAME_PERSON_H_

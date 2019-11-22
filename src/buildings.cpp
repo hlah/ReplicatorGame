@@ -28,7 +28,7 @@ Building get_building(
     auto house_bounding_box = model_loader.bounding_box();
     auto house_transform = registry.get<Transform>( house );
     house_transform.scale( scalling_factor );
-    house_transform.translate_global( 0.0, -scalling_factor*house_bounding_box.lesser().y, 0.0 );
+    house_transform.translate_global( 0.0, -scalling_factor*house_bounding_box.min().y, 0.0 );
     registry.replace<Transform>( house, house_transform );
 
     house_bounding_box.scale( scalling_factor );
@@ -37,7 +37,7 @@ Building get_building(
             house, 
             house_bounding_box.width(),
             house_bounding_box.length(),
-            house_bounding_box.lesser().x,
-            house_bounding_box.lesser().z
+            house_bounding_box.min().x,
+            house_bounding_box.min().z
     };
 }

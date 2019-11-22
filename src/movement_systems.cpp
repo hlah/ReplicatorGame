@@ -1,4 +1,4 @@
-#include "systems.hpp"
+#include "movement_systems.hpp"
 
 #include "replicator/transform.hpp"
 #include "replicator/time.hpp"
@@ -45,7 +45,7 @@ void destination_system( entt::registry& registry ) {
             if( distance < 0.5f ) {
                 destinations.pop_back();
             } else {
-                velocity.value = glm::normalize(displacement) * 5.0f * std::min(1.0f, distance*10.f);
+                velocity.value = glm::normalize(displacement) * 1.0f * std::min(1.0f, distance*10.f);
             }
 
     });
