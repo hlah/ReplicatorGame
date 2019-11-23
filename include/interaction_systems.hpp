@@ -23,5 +23,8 @@ class Selected {
 // Update selection
 void selection_system( entt::registry& registry );
 
+// Commands selection
+void command_system( entt::registry& registry );
+
 
 #endif // _REPLICATOR_GAME_INTERACTION_SYSTEMS_H_

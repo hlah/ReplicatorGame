@@ -8,6 +8,7 @@
 
 struct Person{};
 
+
 entt::entity generate_person_prefab( entt::registry& registry, const entt::resource_handle<ShaderProgram> program_handle );
 
 entt::entity random_place_person(

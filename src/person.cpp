@@ -24,29 +24,24 @@ entt::entity generate_person_prefab( entt::registry& registry, const entt::resou
 
     registry.assign<Hierarchy>( person );
 
-    // create body
-    auto body = registry.create();
-    registry.assign<Model>( body, mesh_cylinder, program_handle );
-    registry.assign<Material>( 
-            body, 
+    Material person_material{
             glm::vec3{0.1, 0.1, 0.0}, 
             glm::vec3{0.9, 0.9, 0.3},  
             glm::vec3{0.5, 0.5, 0.5},  
             50.0
-    );
+    };
+
+    // create body
+    auto body = registry.create();
+    registry.assign<Model>( body, mesh_cylinder, program_handle );
+    registry.assign<Material>( body, person_material );
     registry.assign<Hierarchy>( body, person );
     registry.assign<Transform>( body );
 
     // create head
     auto head = registry.create();
     registry.assign<Model>( head, mesh_sphere, program_handle );
-    registry.assign<Material>( 
-            head, 
-            glm::vec3{0.1, 0.1, 0.0}, 
-            glm::vec3{0.9, 0.9, 0.3},  
-            glm::vec3{0.5, 0.5, 0.5},  
-            50.0
-    );
+    registry.assign<Material>( head, person_material );
     registry.assign<Hierarchy>( head, person );
     auto head_transform = Transform{}.translate( 0.0, 1.3, 0.0 );
     registry.assign<Transform>( head, head_transform );

@@ -17,8 +17,9 @@ int main() {
     engine.bind_button( Key::S, "CameraMoveBackward" );
     engine.bind_button( Key::F, "CameraUp" );
     engine.bind_button( Key::V, "CameraDown" );
-    engine.bind_button( MouseButton::Right, "MoveCamera" );
+    engine.bind_button( MouseButton::Middle, "MoveCamera" );
     engine.bind_button( MouseButton::Left, "Select" );
+    engine.bind_button( MouseButton::Right, "Command" );
 
     GameState state;
     engine.run(&state);

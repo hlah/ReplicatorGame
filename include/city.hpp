@@ -32,8 +32,8 @@ struct CityRect {
 struct Place {
     float pos_x;
     float pos_z;
-    CityRect rect;
-    Place( float x, float z, const CityRect& rect ) : 
+    std::optional<CityRect> rect;
+    Place( float x, float z, const std::optional<CityRect>& rect = std::optional<CityRect>{} ) : 
         pos_x{x}, pos_z{z}, rect{rect} {}
 };
 

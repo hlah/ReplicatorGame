@@ -89,15 +89,17 @@ std::vector<Destination> search(
     float initial_h = glm::l2Norm( final_pos, glm::vec3{ (float)initial_state.x, 0.0, (float)initial_state.y } );
     std::optional<CityRect> initial_rect;
     for( const auto& place : places ) {
-        if( place.rect.inside( initial_state.x, initial_state.y ) ) {
-            initial_rect = place.rect;
-            break;
+        if( place.rect ) {
+            if( place.rect->inside( initial_state.x, initial_state.y ) ) {
+                initial_rect = place.rect;
+                break;
+            }
         }
     }
     std::vector<CityRect> rects;
     for( const auto& place : places  ) {
-        if( place.rect != final_destination.rect && initial_rect && place.rect != *initial_rect ) {
-            rects.emplace_back( place.rect );
+        if( place.rect && place.rect != final_destination.rect && (!initial_rect || place.rect != *initial_rect) ) {
+            rects.emplace_back( *place.rect );
         }
     }
 
@@ -120,10 +122,20 @@ std::vector<Destination> search(
         open_list.pop();
 
         // check goal
-        if( final_destination.rect.inside( current_node.state.x, current_node.state.y ) ) {
-            last_state = current_node.state;
-            //spdlog::debug("Final state: {} {}", current_node.state.first, current_node.state.second);
-            break;
+        if( final_destination.rect ) {
+            if( final_destination.rect->inside( current_node.state.x, current_node.state.y ) ) {
+                last_state = current_node.state;
+                break;
+            }
+        } else {
+            if( final_destination.pos_x >= (float)current_node.state.x && 
+                final_destination.pos_x < (float)(current_node.state.x+1) &&
+                final_destination.pos_z >= (float)current_node.state.y && 
+                final_destination.pos_z < (float)(current_node.state.y+1) 
+              ) {
+                last_state = current_node.state;
+                break;
+            }
         }
 
         for( const auto& neighboor : neighboors( current_node, rects, final_pos ) ) {
@@ -141,7 +153,7 @@ std::vector<Destination> search(
     // recreate solution
     path.emplace_back( Destination{ glm::vec3{final_destination.pos_x, 0.0, final_destination.pos_z} } );
     while( last_state ) {
-        //spdlog::debug("Current step: {} {}", last_state->first, last_state->second );
+        //spdlog::debug("Current step: {} {}", last_state->x, last_state->y );
         path.emplace_back( glm::vec3{(float)last_state->x+0.5f, 0.0, (float)last_state->y+0.5f} );
         last_state = closed_list.at( *last_state ).prev_state;
     }

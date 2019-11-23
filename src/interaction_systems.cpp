@@ -1,6 +1,9 @@
 #include "interaction_systems.hpp"
 
 #include "person.hpp"
+#include "components.hpp"
+#include "search.hpp"
+#include "assimilation.hpp"
 
 #include "replicator/geometry/ray.hpp"
 #include "replicator/geometry/box.hpp"
@@ -17,21 +20,11 @@ void selection_system( entt::registry& registry ) {
     auto window = registry.ctx<WindowHandler>();
     auto ray = Ray::from_screen( registry, window->mouse_x(), window->mouse_y() );
 
-    /*
-       Plane plane{ glm::vec3{0.0}, glm::vec3{0.0, 1.0, 0.0} };
-       auto intersection_test = ray.intersects( plane );
-       if( intersection_test ) {
-       spdlog::debug("Intersection distance: {}; Position: {} {}", intersection_test->first, intersection_test->second.x, intersection_test->second.z);
-       } else {
-       spdlog::debug("No Intersection");
-       }
-       */
-
     std::optional<entt::entity> selected;
     float distance = -std::numeric_limits<float>::infinity();
 
-    auto view = registry.view<Box, Transform, Person>();
-    view.each([&ray, &distance, &selected](auto entity, const auto& box, const auto& transform, const auto& person){
+    auto view = registry.view<Box, Transform, Person, Assimilated>();
+    view.each([&ray, &distance, &selected](auto entity, const auto& box, const auto& transform, const auto& person, const auto& assimiliated ){
             auto transformed_box = transform.global_matrix() * box;
             auto intersection_test = ray.intersects( transformed_box );
             if( intersection_test && intersection_test->first > distance  ) {
@@ -42,9 +35,30 @@ void selection_system( entt::registry& registry ) {
 
     registry.reset<Selected>();
     if( selected ) {
-        spdlog::debug("Selected {}", (int)*selected);
         registry.assign<Selected>( *selected );
     } 
+}
+
+void command_system( entt::registry& registry ) {
+    auto window = registry.ctx<WindowHandler>();
+    auto ray = Ray::from_screen( registry, window->mouse_x(), window->mouse_y() );
+
+    Plane plane{ glm::vec3{0.0}, glm::vec3{0.0, 1.0, 0.0} };
+    auto intersection_test = ray.intersects( plane );
+    if( intersection_test && intersection_test->first > 0.0 ) {
+        auto view = registry.view<Person, Selected, Position, std::vector<Destination>>();
+        view.each([&registry, &intersection_test](
+                    const auto& person, 
+                    const auto& selected, 
+                    const auto& position, 
+                    auto& destination) 
+        {
+                const auto& places = registry.ctx<std::vector<Place>>();
+                Place final_dest{ intersection_test->second.x, intersection_test->second.z };
+                destination = search( position, final_dest, places );
+        });
+    }
+
 }
 
 void Selected::on_construct(entt::entity entity, entt::registry& registry, Selected& selected) {

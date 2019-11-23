@@ -22,6 +22,7 @@
 #include "movement_systems.hpp"
 #include "interaction_systems.hpp"
 #include "buildings.hpp"
+#include "assimilation.hpp"
 
 
 State::Transition GameState::on_start( entt::registry& registry ) {
@@ -43,6 +44,8 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     );
 
     auto& rng = registry.set<std::default_random_engine>( (unsigned) std::chrono::system_clock::now().time_since_epoch().count() );
+    // Watcher for assimilation
+    registry.on_construct<Assimilated>().connect<&Assimilated::on_construct>();
 
     // Create city
     auto buildings = get_buildings( registry, program_handle );
@@ -64,7 +67,13 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     for( int i = 0; i<20; i++ ) {
         random_place_person( registry, rng, places, person_prefab );
     }
+
+    // Put initial individual of the hivemind
+    auto primer = place_person( registry, person_prefab, 0, -51 );
+    registry.assign<Assimilated>( primer );
+
     deepdelete( registry, person_prefab );
+
 
 
     //// Create player with camera
@@ -114,6 +123,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.on_construct<Selected>().connect<&Selected::on_construct>();
     registry.on_destroy<Selected>().connect<&Selected::on_destroy>();
 
+
     return State::Transition::NONE;
 }
 
@@ -131,6 +141,9 @@ State::Transition GameState::on_action( entt::registry& registry, const ActionEv
     }
     if( action.name() == "Select" && action.type() == ActionEvent::Type::ON ) {
         selection_system( registry );
+    }
+    if( action.name() == "Command" && action.type() == ActionEvent::Type::ON ) {
+        command_system( registry );
     }
     handle_action( action, "CameraMoveRight", _player_horizontal_v, _player_speed );
     handle_action( action, "CameraMoveLeft", _player_horizontal_v, -_player_speed );

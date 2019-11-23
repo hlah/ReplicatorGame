@@ -5,6 +5,7 @@
 #include "components.hpp"
 #include "city.hpp"
 #include "search.hpp"
+#include "assimilation.hpp"
 
 #include <algorithm>
 #include <random>
@@ -29,25 +30,27 @@ void velocity_system( entt::registry& registry ) {
 
 void destination_system( entt::registry& registry ) {
     auto view = registry.view<Position, std::vector<Destination>, Velocity>();
-    view.each([&registry]( const auto& position, auto& destinations, auto& velocity ) {
-            if( destinations.size() == 0 ) {
+    view.each([&registry]( auto entity, const auto& position, auto& destinations, auto& velocity ) {
+            // add new destination
+            if( destinations.size() == 0 && !registry.has<Assimilated>( entity ) ) {
                 auto& rng = registry.ctx<std::default_random_engine>();
                 const auto& places = registry.ctx<std::vector<Place>>();
                 const auto& new_place = places[ rng() % places.size() ];
                 destinations = search( position, new_place, places );
-                //Destination new_destination{ glm::vec3{ new_place.pos_x, 0.0, new_place.pos_z } };
-                //destinations.emplace_back( new_destination );
             }
 
-            auto& next_destination = destinations.back();
-            auto displacement = next_destination.value - position.value;
-            float distance = glm::length( displacement );
-            if( distance < 0.5f ) {
-                destinations.pop_back();
+            if( destinations.size() != 0 ) {
+                auto& next_destination = destinations.back();
+                auto displacement = next_destination.value - position.value;
+                float distance = glm::length( displacement );
+                if( distance < 0.5f ) {
+                    destinations.pop_back();
+                } else {
+                    velocity.value = glm::normalize(displacement) * 2.0f * std::min(1.0f, distance*10.f);
+                }
             } else {
-                velocity.value = glm::normalize(displacement) * 1.0f * std::min(1.0f, distance*10.f);
+                velocity.value = glm::vec3{0.0};
             }
-
     });
 }
 
