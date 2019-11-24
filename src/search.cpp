@@ -100,6 +100,9 @@ std::vector<Destination> search(
     for( const auto& place : places  ) {
         if( place.rect && place.rect != final_destination.rect && (!initial_rect || place.rect != *initial_rect) ) {
             rects.emplace_back( *place.rect );
+            if( (place.rect)->inside( (int)final_destination.pos_x, (int)final_destination.pos_z )  ) {
+                return path;
+            }
         }
     }
 
