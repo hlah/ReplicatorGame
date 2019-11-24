@@ -154,8 +154,13 @@ std::vector<Destination> search(
     path.emplace_back( Destination{ glm::vec3{final_destination.pos_x, 0.0, final_destination.pos_z} } );
     while( last_state ) {
         //spdlog::debug("Current step: {} {}", last_state->x, last_state->y );
-        path.emplace_back( glm::vec3{(float)last_state->x+0.5f, 0.0, (float)last_state->y+0.5f} );
-        last_state = closed_list.at( *last_state ).prev_state;
+        auto prev_state = closed_list.at( *last_state ).prev_state;
+        if( prev_state ) {
+            glm::vec3 last_state_vec{ (float)last_state->x+0.5f, 0.0, (float)last_state->y+0.5f };
+            glm::vec3 prev_state_vec{ (float)prev_state->x+0.5f, 0.0, (float)prev_state->y+0.5f };
+            path.emplace_back( (last_state_vec+prev_state_vec)/2.f );
+        }
+        last_state = prev_state;
     }
 
 
