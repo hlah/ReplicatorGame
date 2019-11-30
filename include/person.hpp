@@ -2,7 +2,6 @@
 #define _REPLICATOR_GAME_PERSON_H_
 
 #include "entt/entt.hpp"
-#include "replicator/mesh.hpp"
 #include "replicator/shaders.hpp"
 #include "city.hpp"
 

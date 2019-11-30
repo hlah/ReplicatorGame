@@ -23,6 +23,7 @@
 #include "interaction_systems.hpp"
 #include "buildings.hpp"
 #include "assimilation.hpp"
+#include "birds.hpp"
 
 
 State::Transition GameState::on_start( entt::registry& registry ) {
@@ -72,7 +73,14 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     auto primer = place_person( registry, person_prefab, 0, -51 );
     registry.assign<Assimilated>( primer );
 
+    // Birds
+    auto bird_prefab = generate_bird_prefab( registry, program_handle );
+    for( int i = 0; i<10; i++ ) {
+        random_place_bird( registry, rng, bird_prefab );
+    }
+
     deepdelete( registry, person_prefab );
+    deepdelete( registry, bird_prefab );
 
 
 
@@ -182,6 +190,7 @@ State::Transition GameState::update( entt::registry& registry ) {
 
     hierarchy_system( registry );
     destination_system( registry );
+    bird_system( registry );
     velocity_system( registry );
     position_system( registry );
     transform_system( registry );

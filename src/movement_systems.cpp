@@ -6,6 +6,8 @@
 #include "city.hpp"
 #include "search.hpp"
 #include "assimilation.hpp"
+#include "birds.hpp"
+#include "bezier.hpp"
 
 #include <algorithm>
 #include <random>
@@ -54,3 +56,14 @@ void destination_system( entt::registry& registry ) {
     });
 }
 
+void bird_system( entt::registry& registry ) {
+    auto view = registry.view<Position, const Curve, Bird>();
+    auto dt = registry.ctx<DeltaTime>().value;
+    view.each([dt]( auto& position, const auto& curve, auto& bird ){
+            bird.t += (float)dt * 0.3;
+            if( bird.t >= curve.tmax() ) {
+                bird.t -= curve.tmax();
+            }
+            position.value = curve.get_point( bird.t );
+    });
+}
