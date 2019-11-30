@@ -3,6 +3,7 @@
 #include <queue>
 #include <map>
 #include <optional>
+#include <cmath>
 
 #include "spdlog/spdlog.h"
 
@@ -79,7 +80,8 @@ std::vector<SearchNode> neighboors(
 std::vector<Destination> search( 
         const Position& initial_pos,
         const Place& final_destination,
-        const std::vector<Place>& places
+        const std::vector<Place>& places,
+        bool assimilated
 ) {
     std::vector<Destination> path;
 
@@ -90,7 +92,7 @@ std::vector<Destination> search(
     std::optional<CityRect> initial_rect;
     for( const auto& place : places ) {
         if( place.rect ) {
-            if( place.rect->inside( initial_state.x, initial_state.y ) ) {
+            if( place.rect->inside( std::floor(initial_state.x), std::floor(initial_state.y) ) ) {
                 initial_rect = place.rect;
                 break;
             }
@@ -98,9 +100,10 @@ std::vector<Destination> search(
     }
     std::vector<CityRect> rects;
     for( const auto& place : places  ) {
-        if( place.rect && place.rect != final_destination.rect && (!initial_rect || place.rect != *initial_rect) ) {
+        if( place.rect && place.rect != final_destination.rect && (!initial_rect || place.rect != *initial_rect || assimilated) ) {
             rects.emplace_back( *place.rect );
-            if( (place.rect)->inside( (int)final_destination.pos_x, (int)final_destination.pos_z )  ) {
+            if( (place.rect)->inside( (int)std::floor(final_destination.pos_x), (int)std::floor(final_destination.pos_z) )  ) {
+                spdlog::debug("{} {} inside {} {} {} {}", final_destination.pos_x, final_destination.pos_z, place.rect->x, place.rect->z, place.rect->w, place.rect->l);
                 return path;
             }
         }

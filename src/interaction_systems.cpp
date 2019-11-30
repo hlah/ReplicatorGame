@@ -55,7 +55,7 @@ void command_system( entt::registry& registry ) {
         {
                 const auto& places = registry.ctx<std::vector<Place>>();
                 Place final_dest{ intersection_test->second.x, intersection_test->second.z };
-                destination = search( position, final_dest, places );
+                destination = search( position, final_dest, places, true );
         });
     }
 

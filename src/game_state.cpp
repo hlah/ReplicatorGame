@@ -234,6 +234,7 @@ State::Transition GameState::update( entt::registry& registry ) {
     velocity_system( registry );
     position_system( registry );
     transform_system( registry );
+    assimilation_system( registry );
     camera_system( registry );
     light_system( registry );
     model_system( registry );

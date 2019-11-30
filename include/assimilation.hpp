@@ -9,5 +9,7 @@ class Assimilated{
         static void on_construct(entt::entity entity, entt::registry& registry, const Assimilated& assimilated);
 };
 
+void assimilation_system( entt::registry& registry );
+
 
 #endif // _REPLICATOR_GAME_ASSIMIALTION_H_

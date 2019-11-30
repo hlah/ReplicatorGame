@@ -7,7 +7,8 @@
 std::vector<Destination> search( 
         const Position& initial_pos,
         const Place& final_destination,
-        const std::vector<Place>& places
+        const std::vector<Place>& places,
+        bool assimilated = false
 );
 
 #endif // _REPLICATOR_GAME_SEARCH_H_
