@@ -25,10 +25,8 @@ entt::entity generate_person_prefab( entt::registry& registry, const entt::resou
     registry.assign<Hierarchy>( person );
 
     Material person_material{
-            glm::vec3{0.1, 0.1, 0.0}, 
+            glm::vec3{0.3, 0.3, 0.0}, 
             glm::vec3{0.9, 0.9, 0.3},  
-            glm::vec3{0.5, 0.5, 0.5},  
-            50.0
     };
 
     // create body

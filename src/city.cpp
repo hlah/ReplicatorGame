@@ -84,21 +84,34 @@ std::vector<Place> make_city(
         blocks = new_blocks;
     }
 
-    MeshBuilder mb_cube;
-    mb_cube.cube( 1.0 );
-    auto mesh_cube = mb_cube.build();
+    auto& texture_cache = registry.ctx<entt::resource_cache<Texture>>();
+    auto grass_texture = texture_cache.load<TextureLoader>(
+            "grass_texture"_hs,
+            "../textures/grass.jpg"
+    );
 
     for( auto& block : blocks ) {
         // block marker
+        MeshBuilder grass_mb{};
+        grass_mb.rect( glm::vec3{0.0}, glm::vec3{ 0.0, 0.0, -(float)block.l/2.0 }, glm::vec3{ (float)block.w/2.0, 0.0, 0.0 } );
+        grass_mb.clear_texcoord();
+        grass_mb.add_texcoord( { 0.0,  0.0} );
+        grass_mb.add_texcoord( { block.w/3.0,  0.0} );
+        grass_mb.add_texcoord( { block.w/3.0,  block.l/3.0} );
+        grass_mb.add_texcoord( { 0.0,  block.l/3.0} );
+        auto grass_mesh = grass_mb.build();
+
         auto block_marker = registry.create();
-        registry.assign<Model>( block_marker, mesh_rect, program_handle );
-        registry.assign<Transform>( block_marker, Transform{}.translate(  (float)(block.x)+(float)block.w/2.f, 0.01, (float)(block.z)+(float)block.l/2.f).scale( (float)block.w/2.0, 1.0, (float)block.l/2.0 ) );
-        registry.assign<Material>( 
-                block_marker, 
+        registry.assign<Model>( block_marker, grass_mesh, program_handle );
+        registry.assign<Transform>( block_marker, Transform{}.translate(  (float)(block.x)+(float)block.w/2.f, 0.01, (float)(block.z)+(float)block.l/2.f) );
+        Material grass_material{
                 glm::vec3{0.0, 0.2, 0.0}, 
-                glm::vec3{0.1, 0.5, 0.1}  
-        );
+                glm::vec3{0.05, 0.3, 0.05}  
+        };
+        grass_material.add_diffuse_texture( grass_texture );
+        registry.assign<Material>( block_marker, grass_material );
         registry.assign<Hierarchy>( block_marker );
+
 
         // select building to place
         std::vector<size_t> elegible_buildings;
@@ -119,6 +132,35 @@ std::vector<Place> make_city(
         places.emplace_back( (float)(block.x)+(float)block.w/2.f, (float)(block.z)+(float)block.l/2.f, block );
 
     }
+
+
+    // place terrain
+    MeshBuilder terrain_mb{};
+    terrain_mb.rect( glm::vec3{0.0}, glm::vec3{ 0.0, 0.0, -(float)length/2.0-10.0 }, glm::vec3{ (float)width/2.0+10.0, 0.0, 0.0 } );
+    terrain_mb.clear_texcoord();
+    terrain_mb.add_texcoord( { 0.0,  0.0} );
+    terrain_mb.add_texcoord( { width+20.0,  0.0} );
+    terrain_mb.add_texcoord( { width+20.0,  length+20.0} );
+    terrain_mb.add_texcoord( { 0.0,  length+20.0} );
+    auto terrain_mesh = terrain_mb.build();
+
+    auto terrain = registry.create();
+    registry.assign<Transform>( terrain );
+    registry.assign<Hierarchy>( terrain );
+    registry.assign<Model>( terrain, terrain_mesh, program_handle );
+
+    auto terrain_texture = texture_cache.load<TextureLoader>(
+            "terrain_texture"_hs,
+            "../textures/sidewalk2.png"
+    );
+    Material terrain_material{
+            glm::vec3{0.2, 0.2, 0.2}, 
+            glm::vec3{0.0, 0.0, 0.0},  
+            glm::vec3{0.5, 0.5, 0.5},  
+            2.0
+    };
+    terrain_material.add_diffuse_texture( terrain_texture );
+    registry.assign<Material>( terrain, terrain_material );
 
     /// Create Terrain
     /*
