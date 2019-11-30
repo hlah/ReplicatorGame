@@ -33,29 +33,38 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     mb_rect.rect( glm::vec3{0.0}, glm::vec3{0.0, 0.0, -1.0}, glm::vec3{1.0, 0.0, 0.0} );
     auto mesh_rect = mb_rect.build();
 
-
-    auto program_handle = program_cache.load<ShaderProgramLoader>(
+    auto phong_program_handle = program_cache.load<ShaderProgramLoader>(
             "shader_program"_hs, 
-            std::vector<std::string>{"../shaders/vertex_main.glsl"}, 
+            std::vector<std::string>{"../shaders/vertex_main_phong.glsl"}, 
             std::vector<std::string>{
-            "../shaders/fragment_main.glsl", 
-            "../shaders/blinn_phong_shading.glsl", 
+            "../shaders/fragment_main_phong.glsl", 
+            "../shaders/blinn_phong_light.glsl", 
             "../shaders/lights.glsl"
             } 
     );
+    auto gouraud_program_handle = program_cache.load<ShaderProgramLoader>(
+            "shader_program"_hs, 
+            std::vector<std::string>{
+            "../shaders/vertex_main_gouraud.glsl", 
+            "../shaders/blinn_phong_light.glsl", 
+            "../shaders/lights.glsl"
+            }, 
+            std::vector<std::string>{"../shaders/fragment_main_gouraud.glsl"} 
+    );
+
 
     auto& rng = registry.set<std::default_random_engine>( (unsigned) std::chrono::system_clock::now().time_since_epoch().count() );
     // Watcher for assimilation
     registry.on_construct<Assimilated>().connect<&Assimilated::on_construct>();
 
     // Create city
-    auto buildings = get_buildings( registry, program_handle );
+    auto buildings = get_buildings( registry, phong_program_handle );
     for( auto& building : buildings ) {
         spdlog::debug("Building bounding box: {} {} {} {}", building.left, building.back, building.width, building.length);
     }
     
     auto& places = registry.set<std::vector<Place>>( 
-            make_city( registry, rng, program_handle, buildings, mesh_rect, 100, 100, { { 3, 70, 8 }, { 2, 30, 1 } } ) 
+            make_city( registry, rng, phong_program_handle, buildings, mesh_rect, 100, 100, { { 3, 70, 8 }, { 2, 30, 1 } } ) 
     );
 
     for( auto& building : buildings ) {
@@ -64,7 +73,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     buildings.clear();
 
     // Put city citizens
-    auto person_prefab = generate_person_prefab( registry, program_handle );
+    auto person_prefab = generate_person_prefab( registry, gouraud_program_handle );
     for( int i = 0; i<10; i++ ) {
         random_place_person( registry, rng, places, person_prefab );
     }
@@ -74,7 +83,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     registry.assign<Assimilated>( primer );
 
     // Birds
-    auto bird_prefab = generate_bird_prefab( registry, program_handle );
+    auto bird_prefab = generate_bird_prefab( registry, phong_program_handle );
     for( int i = 0; i<10; i++ ) {
         random_place_bird( registry, rng, bird_prefab );
     }
@@ -118,7 +127,7 @@ State::Transition GameState::on_start( entt::registry& registry ) {
     auto mesh_sphere = mb_sphere.build();
     auto selection_highlight_prefab = registry.create();
     registry.assign<Transform>( selection_highlight_prefab, Transform{}.translate( 0.0, 2.5, 0.0 ) );
-    registry.assign<Model>( selection_highlight_prefab, mesh_sphere, program_handle );
+    registry.assign<Model>( selection_highlight_prefab, mesh_sphere, phong_program_handle );
     registry.assign<Material>( 
             selection_highlight_prefab, 
             glm::vec3{ 0.7, 1.0, 0.7 }

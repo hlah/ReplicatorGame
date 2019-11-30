@@ -9,6 +9,8 @@ void Assimilated::on_construct(entt::entity entity, entt::registry& registry, co
     Material assimiated_material{
             glm::vec3{0.0, 0.1, 0.3}, 
             glm::vec3{0.3, 0.5, 0.7},  
+            glm::vec3{0.3, 0.5, 0.7},  
+            20.0
     };
 
     const auto& hierarchy = registry.get<Hierarchy>( entity );

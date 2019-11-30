@@ -17,7 +17,7 @@ entt::entity generate_person_prefab( entt::registry& registry, const entt::resou
     auto mesh_cylinder = mb_cylinder.build();
 
     MeshBuilder mb_sphere;
-    mb_sphere.icosphere( 0.3, 3 );
+    mb_sphere.icosphere( 0.3, 2 );
     auto mesh_sphere = mb_sphere.build();
 
     auto person = registry.create();
