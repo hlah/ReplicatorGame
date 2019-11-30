@@ -17,6 +17,7 @@ int main() {
     engine.bind_button( Key::S, "CameraMoveBackward" );
     engine.bind_button( Key::F, "CameraUp" );
     engine.bind_button( Key::V, "CameraDown" );
+    engine.bind_button( Key::C, "ToggleCamera" );
     engine.bind_button( Key::LeftControl, "MoveCamera" );
     engine.bind_button( MouseButton::Left, "Select" );
     engine.bind_button( MouseButton::Right, "Command" );

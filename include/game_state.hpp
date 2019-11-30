@@ -29,6 +29,9 @@ class GameState : public State {
         double _new_mouse_x, _new_mouse_y;
 
         bool _move_camera = false;
+        bool _camera_look_at_mode = false;
+        float _camera_distance = 20.0;
+
 };
 
 #endif // _REPLICATOR_GAME_GAME_STATE_H_

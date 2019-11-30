@@ -153,6 +153,9 @@ State::Transition GameState::on_action( entt::registry& registry, const ActionEv
     if( action.name() == "Command" && action.type() == ActionEvent::Type::ON ) {
         command_system( registry );
     }
+    if( action.name() == "ToggleCamera" && action.type() == ActionEvent::Type::ON ) {
+        _camera_look_at_mode = !_camera_look_at_mode;
+    }
     handle_action( action, "CameraMoveRight", _player_horizontal_v, _player_speed );
     handle_action( action, "CameraMoveLeft", _player_horizontal_v, -_player_speed );
     handle_action( action, "CameraMoveForward", _player_transversal_v, -_player_speed );
@@ -170,23 +173,51 @@ State::Transition GameState::on_mouse_move( entt::registry& registry, double mx,
 }
 
 State::Transition GameState::update( entt::registry& registry ) {
+    float dt = registry.ctx<DeltaTime>().value;
     _head_x_rotation = -(_new_mouse_y-_prev_mouse_y)*_player_rotation_speed;
     _player_y_rotation = -(_new_mouse_x-_prev_mouse_x)*_player_rotation_speed;
 
-    float dt = registry.ctx<DeltaTime>().value;
+    if( !_camera_look_at_mode ) {
 
-    auto new_player_transform = registry.get<Transform>( _player );
-    new_player_transform.translate(_player_horizontal_v * dt, _player_vertical_v * dt, _player_transversal_v * dt);
-    if( _move_camera ) {
-        new_player_transform.rotate_y( _player_y_rotation * dt );
-    }
-    registry.replace<Transform>( _player, new_player_transform );
 
-    if( _move_camera ) {
-        auto new_head_transform = registry.get<Transform>( _head );
-        new_head_transform.rotate_x( _head_x_rotation * dt );
-        registry.replace<Transform>( _head, new_head_transform );
+        auto new_player_transform = registry.get<Transform>( _player );
+        new_player_transform.translate(_player_horizontal_v * dt, _player_vertical_v * dt, _player_transversal_v * dt);
+        if( _move_camera ) {
+            new_player_transform.rotate_y( _player_y_rotation * dt );
+        }
+        registry.replace<Transform>( _player, new_player_transform );
+
+        if( _move_camera ) {
+            auto new_head_transform = registry.get<Transform>( _head );
+            new_head_transform.rotate_x( _head_x_rotation * dt );
+            registry.replace<Transform>( _head, new_head_transform );
+        }
+    } else {
+        auto view = registry.view<Selected>();
+        if( view.size() > 0 ) {
+            auto selected = view[0];
+
+            _camera_distance += _player_vertical_v * dt;
+
+            auto new_player_transform = registry.get<Transform>( _player );
+            new_player_transform.set_translation( registry.get<Transform>( selected ).get_translation() );
+            if( _move_camera ) {
+                new_player_transform.rotate_y( _player_y_rotation * dt );
+            }
+            auto new_head_transform = registry.get<Transform>( _head );
+            if( _move_camera ) {
+                new_head_transform.rotate_x( _head_x_rotation * dt );
+                registry.replace<Transform>( _head, new_head_transform );
+            }
+            
+            auto rotation = new_head_transform.get_rotation();
+            new_player_transform.translate( glm::mat4_cast( rotation ) * glm::vec4{0.0, 0.0, _camera_distance, 0.0} );
+
+            registry.replace<Transform>( _player, new_player_transform );
+            
+        }
     }
+
 
     hierarchy_system( registry );
     destination_system( registry );
